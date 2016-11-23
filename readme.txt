@@ -26,6 +26,9 @@ Easily install a fresh, new take on infinite scroll that's both analytics and ad
 
 == Changelog ==
 
+= 1.0.2 =
+* Admin style tweaks.
+
 = 1.0.1 =
 * Admin page style edits.
 
