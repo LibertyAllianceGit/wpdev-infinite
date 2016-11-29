@@ -26,6 +26,13 @@ Easily install a fresh, new take on infinite scroll that's both analytics and ad
 
 == Changelog ==
 
+= 1.1.0 =
+* Added additional panel styles.
+* Added loading bar color options.
+* Added separate settings for desktop and mobile.
+* Revamped admin options page.
+* Updated admin menu icon.
+
 = 1.0.2 =
 * Admin style tweaks.
 

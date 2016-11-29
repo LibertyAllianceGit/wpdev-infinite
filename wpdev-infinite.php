@@ -3,7 +3,7 @@
  * Plugin Name: WP Developers | Infinite ∞
  * Plugin URI: http://wpdevelopers.com
  * Description: Auto loads the next post on single, with a slick transition, and loads new ads.
- * Version: 1.0.2
+ * Version: 1.1.0
  * Author: Tyler Johnson
  * Author URI: http://libertyalliance.com
  * Copyright 2016 WP Developers & Liberty Alliance LLC
@@ -25,83 +25,105 @@ Enqueue Scripts
 **/
 // Enqueue Needed Scripts
 function wpdevinf_enqueue_files() {
-  if(is_single()) {
-    // Grab Options
-    $wpdevinfopt = get_option( 'wpdevinf_options_option_name' );
-    $enableinfinite = $wpdevinfopt['enable_infinite_scroll_0']; // Enable infinite scroll
-    $navoption = $wpdevinfopt['post_navigation_container_0']; // Post Navigation Container
-    $wptouchnavoption = $wpdevinfopt['wptouch_post_navigation_container_0']; // Post Navigation
-    $locoption = $wpdevinfopt['bottom_loading_location_container_1']; // Bottom Loading Location
-    $wptouchlocoption = $wpdevinfopt['wptouch_bottom_loading_location_container_1']; // Bottom Loading Location
-    $enablebtns = $wpdevinfopt['enable_comment_buttons_3']; // Enable Comment Buttons
-    $fbcontainer = $wpdevinfopt['facebook_comments_container_4']; // Facebook Comments Container
-    $dqcontainer = $wpdevinfopt['disqus_comments_container_5']; // Disqus Comments Container
-    $delaytime = $wpdevinfopt['page_refresh_transition_time_6']; // Page Refresh Transition Time
+  // Setup Options
+  $wpdevinf_op = get_option( 'wpdevinf_options_option_name' ); // Array of All Options
+  if(wp_is_mobile()) {
+    $enableinf = $wpdevinf_op['enable_infinite_scroll_10']; // Enable Infinite Scroll
+    $postnav   = $wpdevinf_op['post_navigation_container_11']; // Post Navigation Container
+    $toptype   = $wpdevinf_op['top_loading_type_12']; // Top Loading Type
+    $toploc    = $wpdevinf_op['top_loading_type_placement_12']; // Top Loading Placement
+    $bottype   = $wpdevinf_op['bottom_loading_type_13']; // Bottom Loading Type
+    $botloc    = $wpdevinf_op['bottom_loading_type_placement_13']; // Bottom Loading Placement
+    $loadimg   = $wpdevinf_op['enable_panel_image_15']; // Enable Panel Image
+    $enablecom = $wpdevinf_op['enable_comment_buttons_17']; // Enable Comment Buttons
+    $fbcomcont = $wpdevinf_op['facebook_comment_container_18']; // Facebook Comment Container
+    $dqcomcont = $wpdevinf_op['disqus_comment_container_19']; // Disqus Comment Container
+    $modalsize = '300'; // Modal Size
+  } else {
+    $enableinf = $wpdevinf_op['enable_infinite_scroll_0']; // Enable Infinite Scroll
+    $postnav   = $wpdevinf_op['post_navigation_container_1']; // Post Navigation Container
+    $toptype   = $wpdevinf_op['top_loading_type_2']; // Top Loading Type
+    $toploc    = $wpdevinf_op['top_loading_type_placement_2']; // Top Loading Placement
+    $bottype   = $wpdevinf_op['bottom_loading_type_3']; // Bottom Loading Type
+    $botloc    = $wpdevinf_op['bottom_loading_type_placement_3']; // Bottom Loading Placement
+    $loadimg   = $wpdevinf_op['enable_panel_image_5']; // Enable Panel Image
+    $enablecom = $wpdevinf_op['enable_comment_buttons_7']; // Enable Comment Buttons
+    $fbcomcont = $wpdevinf_op['facebook_comment_container_8']; // Facebook Comment Container
+    $dqcomcont = $wpdevinf_op['disqus_comment_container_9']; // Disqus Comment Container
+    $modalsize = '500'; // Modal Size
+  }
 
-    if(!empty($enableinfinite)) {
+  if(is_single() && !empty($enableinf)) {
       wp_enqueue_script('wpdevinf-scroll-js', plugin_dir_url(__FILE__) . 'js/wpdevinf-scroll.min.js', array('jquery'), null, true);
       wp_enqueue_script('jquery-effects-bounce');
       wp_enqueue_script( 'jquery-ui-core' );
       wp_enqueue_script( 'jquery-ui-dialog' );
 
-      // Setup Options
+      // Option Logic
         // Setup Remove Navigation
-        if(!empty($navoption) && !wp_is_mobile()) {
-          $navoutput = $navoption;
-        } elseif(!empty($wptouchnavoption) && wp_is_mobile()) {
-          $navoutput = $wptouchnavoption;
+        if(!empty($postnav)) {
+          $navoutput = $postnav;
         } else {
           $navoutput = '';
         }
 
-        // Setup Bottom Output Location
-        if(!empty($locoption) && !wp_is_mobile()) {
-          $locoutput = $locoption;
-        } elseif(!empty($wptouchlocoption) && wp_is_mobile()) {
-          $locoutput = $wptouchlocoption;
-        } elseif(!empty($navoption)) {
-          $locoutput = $navoption;
+        // Setup Top Panel Type
+        if(!empty($toptype) && !empty($toploc)) {
+          $topout = $toptype;
+          $toplocation = $toploc;
+        } elseif(!empty($toptype) && empty($toploc)) {
+          $topout = $toptype;
+          $toplocation = 'body';
+        } elseif(empty($toptype) && !empty($toploc)) {
+          $topout = '1';
+          $toplocation = $toploc;
         } else {
-          $locoutput = 'body';
+          $topout = '1';
+          $toplocation = 'body';
+        }
+
+        // Setup Bottom Panel Type
+        if(!empty($bottype) && !empty($botloc)) {
+          $botout = $bottype;
+          $botlocation = $botloc;
+        } elseif(!empty($bottype) && empty($botloc) && !empty($postnav)) {
+          $botout = $bottype;
+          $botlocation = $postnav;
+        } elseif(empty($bottype) && !empty($botloc)) {
+          $botout = '1';
+          $botlocation = $botloc;
+        } else {
+          $botout = '1';
+          $botlocation = 'body';
         }
 
         // Setup Buttons
-        if(!empty($enablebtns)) {
-          if(!empty($fbcontainer)) {
-            $fboutput = $fbcontainer;
+        if(!empty($enablecom)) {
+          if(!empty($fbcomcont)) {
+            $fboutput = $fbcomcont;
           } else {
             $fboutput = '';
           }
-          if(!empty($dqcontainer)) {
-            $dqoutput = $dqcontainer;
+          if(!empty($dqcomcont)) {
+            $dqoutput = $dqcomcont;
           } else {
             $dqoutput = '';
           }
         }
 
-        if(!wp_is_mobile()) {
-          $modalsize = '500';
-        } else {
-          $modalsize = '300';
-        }
-
-        if(!empty($delaytime)) {
-          $transtimer = $delaytime;
-        } else {
-          $transtimer = 3000;
-        }
-
       $data = array(
         'navcontainer' => $navoutput,
-        'navlocation'  => $locoutput,
-        'commentbtns'  => $enablebtns,
+        'topnavtype'   => $topout,
+        'topnavplace'  => $toplocation,
+        'botnavtype'   => $botout,
+        'botnavplace'  => $botlocation,
+        'commentbtns'  => $enablecom,
         'fbbuttons'    => $fboutput,
         'dqbuttons'    => $dqoutput,
-        'modalsize'    => $modalsize,
-        'transtimer'   => $transtimer
+        'loadingimg'   => $loadimg,
+        'modalsize'    => $modalsize
       );
       wp_localize_script('wpdevinf-scroll-js', 'wpdevinf_vars', $data);
-    }
   }
 }
 // Load Scripts on Single Only
@@ -119,8 +141,7 @@ add_action('admin_enqueue_scripts', 'wpdevinf_admin_styles');
 Load Comments Modal
 **/
 function wpdevinf_comments_modal()  {
-  $wpdevinfopt = get_option( 'wpdevinf_options_option_name' );
-  $enableinfinite = $wpdevinfopt['enable_infinite_scroll_0']; // Enable infinite scroll
+  $enableinfinite = '1'; // Enable infinite scroll
 
   $output = '';
 
@@ -144,8 +165,7 @@ add_action('wp_head', 'wpdevinf_comments_modal');
 Load Post Information
 **/
 function wpdevinf_post_information() {
-  $wpdevinfopt = get_option( 'wpdevinf_options_option_name' );
-  $enableinfinite = $wpdevinfopt['enable_infinite_scroll_0']; // Enable infinite scroll
+  $enableinfinite = '1'; // Enable infinite scroll
 
   if(is_single() && !empty($enableinfinite)) {
     // Get Posts
@@ -185,47 +205,70 @@ add_action('wp_footer', 'wpdevinf_post_information');
 Default Styles
 **/
 function wpdevinf_css_styles() {
-  $wpdevinfopt = get_option( 'wpdevinf_options_option_name' ); // Array of All Options
-  $enableinfinite = $wpdevinfopt['enable_infinite_scroll_0']; // Enable infinite scroll
+  $wpdevinf_op = get_option( 'wpdevinf_options_option_name' ); // Array of All Options
 
-  if(is_single() && !empty($enableinfinite)) {
-    // Setup Options
-    $loadingcolor = $wpdevinfopt['loading_background_color_2']; // Loading Background Color
-    $enablecomments = $wpdevinfopt['enable_comment_buttons_3']; // Enable Comment Buttons
-    $fbcomments = $wpdevinfopt['facebook_comments_container_4']; // Facebook Comments Container
-    $dqcomments = $wpdevinfopt['disqus_comments_container_5']; // Disqus Comments Container
+  if(is_single()) {
+    if(wp_is_mobile()) {
+      $enableinf = $wpdevinf_op['enable_infinite_scroll_10']; // Enable Infinite Scroll
+      $loadbg = $wpdevinf_op['loading_panel_background_color_14']; // Loading Panel Background Color
+      $loadcolor = $wpdevinf_op['loading_bar_color_16']; // Loading Bar Color
+      $enablecom = $wpdevinf_op['enable_comment_buttons_17']; // Enable Comment Buttons
+      $fbcomcont = $wpdevinf_op['facebook_comment_container_18']; // Facebook Comment Container
+      $dqcomcont = $wpdevinf_op['disqus_comment_container_19']; // Disqus Comment Container
+    } else {
+      $enableinf = $wpdevinf_op['enable_infinite_scroll_0']; // Enable Infinite Scroll
+      $loadbg = $wpdevinf_op['loading_panel_background_color_4']; // Loading Panel Background Color
+      $loadcolor = $wpdevinf_op['loading_bar_color_6']; // Loading Bar Color
+      $enablecom = $wpdevinf_op['enable_comment_buttons_7']; // Enable Comment Buttons
+      $fbcomcont = $wpdevinf_op['facebook_comment_container_8']; // Facebook Comment Container
+      $dqcomcont = $wpdevinf_op['disqus_comment_container_9']; // Disqus Comment Container
+    }
 
     // Start Output CSS
     $output = '<style type="text/css">';
 
     // General CSS
-    $output .= 'body,body:before,html{top:0!important}hr.wpdevinf-post-divider{margin:0!important}.wpdevinf-bottom,.wpdevinf-top{text-align:center;font-family:inherit;background:' . $loadingcolor . ';height:auto!important;max-width:100%;min-width:100%}div#wpdevinf-bottom-inner,div#wpdevinf-top-inner{padding:2rem 0 0;background:rgba(0,0,0,.3);text-shadow:0 0 8px rgba(0,0,0,.6)}.wpdevinf-bottom a,.wpdevinf-top a{color:#f5f5f5 !important;font-weight:700;text-decoration: none;}.wpdevinf-bottom{margin:2rem 0}.wpdevinf-bottom-label,.wpdevinf-top-label,h1.wpdevinf-bottom-title,h1.wpdevinf-top-title{text-align:center}h1.wpdevinf-bottom-title,h1.wpdevinf-top-title{padding:0 2rem;color:#fff !important}.wpdevinf-bottom-label,.wpdevinf-top-label{border:1px solid rgba(255,255,255,.2);padding:.5rem 1rem;margin:1rem 0 0;display:inline-block}.ui-dialog-titlebar-close,span.wpdevinf-loading, div#wpdevinf-fbcomments-cont button,div#wpdevinf-dqcomments-cont button{transition:all .3s ease;-webkit-transition:all .3s ease;-moz-transition:all .3s ease}span.wpdevinf-loading{font-weight:700;background:rgba(255,255,255,.2);padding:.2rem .5rem;cursor:pointer}span.wpdevinf-loading-next-load,span.wpdevinf-loading-previous-load{margin-left:0}span.wpdevinf-loading-next-cancel,span.wpdevinf-loading-previous-cancel{margin-left:.5rem}span.wpdevinf-loading:hover{background:rgba(255,255,255,.5)}.wpdevinf-bottom,.wpdevinf-top{background-size:cover!important;background-position:50% 50%!important}#wpdevinf-progress-bottom,#wpdevinf-progress-top{width:100%;height:10px;border:none;margin-top:2rem;background-color:rgba(41,41,41,.5)}#wpdevinf-progress-bottom div,#wpdevinf-progress-top div{height:100%;text-align:right;line-height:10px;width:0;background-color:rgba(255,255,255,.5)}';
+    $output .= 'html{top:0!important}hr.wpdevinf-post-divider{margin:0!important}.wpdevinf-bottom,.wpdevinf-top{text-align:center;font-family:inherit;background:' . $loadingcolor . ';height:auto!important;max-width:100%;min-width:100%}div#wpdevinf-bottom-inner,div#wpdevinf-top-inner{padding:2rem 0 0;background:rgba(0,0,0,.3);text-shadow:0 0 8px rgba(0,0,0,.6)}.wpdevinf-bottom a,.wpdevinf-top a{color:#f5f5f5 !important;font-weight:700;text-decoration: none;}.wpdevinf-bottom-label,.wpdevinf-top-label,h1.wpdevinf-bottom-title,h1.wpdevinf-top-title{text-align:center}h1.wpdevinf-bottom-title,h1.wpdevinf-top-title{padding:0 2rem;color:#fff !important}.wpdevinf-bottom-label,.wpdevinf-top-label{border:1px solid rgba(255,255,255,.2);padding:.5rem 1rem;margin:1rem 0 0;display:inline-block}.ui-dialog-titlebar-close,span.wpdevinf-loading, div#wpdevinf-fbcomments-cont button,div#wpdevinf-dqcomments-cont button{transition:all .3s ease;-webkit-transition:all .3s ease;-moz-transition:all .3s ease}span.wpdevinf-loading{font-weight:700;background:rgba(255,255,255,.2);padding:.2rem .5rem;cursor:pointer}span.wpdevinf-loading-next-load,span.wpdevinf-loading-previous-load{margin-left:0}span.wpdevinf-loading-next-cancel,span.wpdevinf-loading-previous-cancel{margin-left:.5rem}span.wpdevinf-loading:hover{background:rgba(255,255,255,.5)}.wpdevinf-bottom,.wpdevinf-top{background-size:cover!important;background-position:50% 50%!important}#wpdevinf-progress-bottom,#wpdevinf-progress-top{width:100%;height:10px;border:none;margin-top:2rem;background-color:rgba(41,41,41,.5)}#wpdevinf-progress-bottom div,#wpdevinf-progress-top div{height:100%;text-align:right;line-height:10px;width:0;}';
 
     // If Comment Buttons Enabled
-    if(!empty($enablecomments) && !empty($fbcomments) || !empty($enablecomments) && !empty($dqcomments)) {
+    if(!empty($enablecom) && !empty($fbcomcont) || !empty($enablecom) && !empty($dqcomcont)) {
       $output .= 'div#dqcomments-dialog,div#fbcomments-dialog{background:#fff;padding:1rem;box-shadow:0 0 .5rem rgba(0,0,0,.4)}.ui-dialog-titlebar-close{background:#000;text-decoration:none;color:#fff;padding:.8rem 1rem;text-transform:uppercase;border:2px solid #000}.ui-dialog-titlebar-close:hover{background:rgba(0,0,0,0);color:#000}span.ui-dialog-title{display:none;visibility:hidden}.ui-dialog{outline:0}.ui-dialog-titlebar{background:rgba(0,0,0,.1)}';
     }
 
     // If Facebook Comments Enabled
-    if(!empty($enablecomments) && !empty($fbcomments)) {
+    if(!empty($enablecom) && !empty($fbcomcont)) {
       $output .= 'div#fbcomments-dialog{border:2px solid #3b5998}';
     }
 
     // If Disqus Comments Enabled
-    if(!empty($enablecomments) && !empty($dqcomments)) {
+    if(!empty($enablecom) && !empty($dqcomcont)) {
       $output .= 'div#dqcomments-dialog{border:2px solid #2e9fff}';
     }
 
     // If Facebook & Disqus Comments Enabled - Button Check
-    if(!empty($enablecomments) && !empty($fbcomments) && !empty($dqcomments)) {
+    if(!empty($enablecom) && !empty($fbcomcont) && !empty($dqcomcont)) {
       // Both Enabled
       $output .= 'div#wpdevinf-dqcomments-cont,div#wpdevinf-fbcomments-cont{display:inline-block;width:50%}div#wpdevinf-dqcomments-cont button,div#wpdevinf-fbcomments-cont button{width:100%;box-shadow:none;border:none;border-radius:0;font-size:18px;text-decoration:none;text-shadow:none;color:#fff;text-align:center}div#wpdevinf-fbcomments-cont button{background:#3b5998}div#wpdevinf-dqcomments-cont button{background:#2e9fff}div#wpdevinf-dqcomments-cont button:hover,div#wpdevinf-fbcomments-cont button:hover{opacity:.85}@media screen and (max-width:1200px){div#wpdevinf-dqcomments-cont button,div#wpdevinf-fbcomments-cont button{font-size:14px!important}}@media screen and (max-width:768px){div#wpdevinf-dqcomments-cont button,div#wpdevinf-fbcomments-cont button{font-size:16px!important}div#wpdevinf-dqcomments-cont,div#wpdevinf-fbcomments-cont{width:100%!important}}';
-    } elseif(!empty($enablecomments) && !empty($fbcomments) && empty($dqcomments)) {
+    } elseif(!empty($enablecom) && !empty($fbcomcont) && empty($dqcomcont)) {
       // Facebook Only
       $output .= 'div#wpdevinf-fbcomments-cont{margin:1rem 0}div#wpdevinf-fbcomments-cont button{width:100%;background:#3b5998;color:#fff;padding:.8rem;font-size:18px;border:none;border-radius:0;box-shadow:none;text-shadow:none}div#wpdevinf-fbcomments-cont button:hover{opacity:.85}';
-    } elseif(!empty($enablecomments) && !empty($dqcomments) && empty($fbcomments)) {
+    } elseif(!empty($enablecom) && !empty($dqcomcont) && empty($fbcomcont)) {
       // Disqus Only
       $output .= 'div#wpdevinf-dqcomments-cont{margin:1rem 0}div#wpdevinf-dqcomments-cont button{width:100%;background:#2e9fff;color:#fff;padding:.8rem;font-size:18px;border:none;border-radius:0;box-shadow:none;text-shadow:none}div#wpdevinf-dqcomments-cont button:hover{opacity:.85}';
+    }
+
+    // Panel Background Color
+    if(!empty($loadbg)) {
+      $output .= '.wpdevinf-bottom, .wpdevinf-top{background-color:' . $loadbg . ';}';
+    } else {
+      $output .= '.wpdevinf-bottom, .wpdevinf-top{background-color: #333;}';
+    }
+
+    // Loading Bar Color
+    if(!empty($loadcolor)) {
+      $output .= '#wpdevinf-progress-bottom div,#wpdevinf-progress-top div{background:' . $loadcolor . ' !important;}';
+    } else {
+      $output .= '#wpdevinf-progress-bottom div,#wpdevinf-progress-top div{background:#fff}';
     }
 
     // End Output
@@ -252,12 +295,12 @@ class WpdevinfOptions {
 
 	public function wpdevinf_options_add_plugin_page() {
 		add_menu_page(
-			'WPDev Infinite', // page_title
+			'WP Developers Infinite Scroll', // page_title
 			'WPDev Infinite', // menu_title
 			'manage_options', // capability
 			'wpdevinf-options', // menu_slug
 			array( $this, 'wpdevinf_options_create_admin_page' ), // function
-			'dashicons-controls-repeat', // icon_url
+			'dashicons-image-rotate', // icon_url
 			100 // position
 		);
 	}
@@ -266,8 +309,8 @@ class WpdevinfOptions {
 		$this->wpdevinf_options_options = get_option( 'wpdevinf_options_option_name' ); ?>
 
 		<div class="wrap wpdevinf-options-page">
-			<h2><img src="<?php echo plugin_dir_url(__FILE__) . 'admin/wpdevinf-logo.png'; ?>" alt="WPDevelopers Infinite"/></h2>
-			<p>A new, fresh take on infinite load for single posts that puts the user in control.</p>
+			<img src="<?php echo plugin_dir_url(__FILE__) . 'admin/wpdevinf-logo.png'; ?>" />
+			<p></p>
 			<?php settings_errors(); ?>
 
 			<form method="post" action="options.php">
@@ -288,133 +331,308 @@ class WpdevinfOptions {
 		);
 
 		add_settings_section(
-			'wpdevinf_options_setting_section', // id
-			'Settings', // title
+			'wpdevinf_options_desktopsetting_section', // id
+			'Desktop Settings', // title
 			array( $this, 'wpdevinf_options_section_info' ), // callback
 			'wpdevinf-options-admin' // page
 		);
 
-    add_settings_field(
+		add_settings_field(
 			'enable_infinite_scroll_0', // id
 			'Enable Infinite Scroll', // title
 			array( $this, 'enable_infinite_scroll_0_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'post_navigation_container_0', // id
+			'post_navigation_container_1', // id
 			'Post Navigation Container', // title
-			array( $this, 'post_navigation_container_0_callback' ), // callback
+			array( $this, 'post_navigation_container_1_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
+		);
+
+		add_settings_field(
+			'top_loading_type_2', // id
+			'Top Loading Type', // title
+			array( $this, 'top_loading_type_2_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
     add_settings_field(
-			'wptouch_post_navigation_container_0', // id
-			'WPTouch Post Navigation Container', // title
-			array( $this, 'wptouch_post_navigation_container_0_callback' ), // callback
+			'top_loading_type_placement_2', // id
+			'Top Loading Placement', // title
+			array( $this, 'top_loading_type_placement_2_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'bottom_loading_location_container_1', // id
-			'Bottom Loading Location Container', // title
-			array( $this, 'bottom_loading_location_container_1_callback' ), // callback
+			'bottom_loading_type_3', // id
+			'Bottom Loading Type', // title
+			array( $this, 'bottom_loading_type_3_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
     add_settings_field(
-			'wptouch_bottom_loading_location_container_1', // id
-			'WPTouch Bottom Loading Location Container', // title
-			array( $this, 'wptouch_bottom_loading_location_container_1_callback' ), // callback
+			'bottom_loading_type_placement_3', // id
+			'Bottom Loading Placement', // title
+			array( $this, 'bottom_loading_type_placement_3_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'loading_background_color_2', // id
-			'Loading Background Color', // title
-			array( $this, 'loading_background_color_2_callback' ), // callback
+			'loading_panel_background_color_4', // id
+			'Loading Panel Background Color', // title
+			array( $this, 'loading_panel_background_color_4_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'enable_comment_buttons_3', // id
+			'enable_panel_image_5', // id
+			'Enable Panel Image', // title
+			array( $this, 'enable_panel_image_5_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_desktopsetting_section' // section
+		);
+
+		add_settings_field(
+			'loading_bar_color_6', // id
+			'Loading Bar Color', // title
+			array( $this, 'loading_bar_color_6_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_desktopsetting_section' // section
+		);
+
+		add_settings_field(
+			'enable_comment_buttons_7', // id
 			'Enable Comment Buttons', // title
-			array( $this, 'enable_comment_buttons_3_callback' ), // callback
+			array( $this, 'enable_comment_buttons_7_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'facebook_comments_container_4', // id
-			'Facebook Comments Container', // title
-			array( $this, 'facebook_comments_container_4_callback' ), // callback
+			'facebook_comment_container_8', // id
+			'Facebook Comment Container', // title
+			array( $this, 'facebook_comment_container_8_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
 		);
 
 		add_settings_field(
-			'disqus_comments_container_5', // id
-			'Disqus Comments Container', // title
-			array( $this, 'disqus_comments_container_5_callback' ), // callback
+			'disqus_comment_container_9', // id
+			'Disqus Comment Container', // title
+			array( $this, 'disqus_comment_container_9_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_desktopsetting_section' // section
+		);
+
+    add_settings_section(
+			'wpdevinf_options_mobilesetting_section', // id
+			'Mobile Settings', // title
+			array( $this, 'wpdevinf_options_section_info' ), // callback
+			'wpdevinf-options-admin' // page
 		);
 
 		add_settings_field(
-			'page_refresh_transition_time_6', // id
-			'Page Refresh Transition Time', // title
-			array( $this, 'page_refresh_transition_time_6_callback' ), // callback
+			'enable_infinite_scroll_10', // id
+			'Enable Infinite Scroll', // title
+			array( $this, 'enable_infinite_scroll_10_callback' ), // callback
 			'wpdevinf-options-admin', // page
-			'wpdevinf_options_setting_section' // section
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'post_navigation_container_11', // id
+			'Post Navigation Container', // title
+			array( $this, 'post_navigation_container_11_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'top_loading_type_12', // id
+			'Top Loading Type', // title
+			array( $this, 'top_loading_type_12_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+    add_settings_field(
+			'top_loading_type_placement_12', // id
+			'Top Loading Placement', // title
+			array( $this, 'top_loading_type_placement_12_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'bottom_loading_type_13', // id
+			'Bottom Loading Type', // title
+			array( $this, 'bottom_loading_type_13_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+    add_settings_field(
+			'bottom_loading_type_placement_13', // id
+			'Bottom Loading Placement', // title
+			array( $this, 'bottom_loading_type_placement_13_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'loading_panel_background_color_14', // id
+			'Loading Panel Background Color', // title
+			array( $this, 'loading_panel_background_color_14_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'enable_panel_image_15', // id
+			'Enable Panel Image', // title
+			array( $this, 'enable_panel_image_15_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'loading_bar_color_16', // id
+			'Loading Bar Color', // title
+			array( $this, 'loading_bar_color_16_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'enable_comment_buttons_17', // id
+			'Enable Comment Buttons', // title
+			array( $this, 'enable_comment_buttons_17_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'facebook_comment_container_18', // id
+			'Facebook Comment Container', // title
+			array( $this, 'facebook_comment_container_18_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
+		);
+
+		add_settings_field(
+			'disqus_comment_container_19', // id
+			'Disqus Comment Container', // title
+			array( $this, 'disqus_comment_container_19_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_mobilesetting_section' // section
 		);
 	}
 
 	public function wpdevinf_options_sanitize($input) {
 		$sanitary_values = array();
-    if ( isset( $input['enable_infinite_scroll_0'] ) ) {
+		if ( isset( $input['enable_infinite_scroll_0'] ) ) {
 			$sanitary_values['enable_infinite_scroll_0'] = $input['enable_infinite_scroll_0'];
 		}
 
-		if ( isset( $input['post_navigation_container_0'] ) ) {
-			$sanitary_values['post_navigation_container_0'] = sanitize_text_field( $input['post_navigation_container_0'] );
+		if ( isset( $input['post_navigation_container_1'] ) ) {
+			$sanitary_values['post_navigation_container_1'] = sanitize_text_field( $input['post_navigation_container_1'] );
 		}
 
-    if ( isset( $input['wptouch_post_navigation_container_0'] ) ) {
-			$sanitary_values['wptouch_post_navigation_container_0'] = sanitize_text_field( $input['wptouch_post_navigation_container_0'] );
+		if ( isset( $input['top_loading_type_2'] ) ) {
+			$sanitary_values['top_loading_type_2'] = $input['top_loading_type_2'];
 		}
 
-		if ( isset( $input['bottom_loading_location_container_1'] ) ) {
-			$sanitary_values['bottom_loading_location_container_1'] = sanitize_text_field( $input['bottom_loading_location_container_1'] );
+    if ( isset( $input['top_loading_type_placement_2'] ) ) {
+			$sanitary_values['top_loading_type_placement_2'] = sanitize_text_field( $input['top_loading_type_placement_2'] );
 		}
 
-    if ( isset( $input['wptouch_bottom_loading_location_container_1'] ) ) {
-			$sanitary_values['wptouch_bottom_loading_location_container_1'] = sanitize_text_field( $input['wptouch_bottom_loading_location_container_1'] );
+		if ( isset( $input['bottom_loading_type_3'] ) ) {
+			$sanitary_values['bottom_loading_type_3'] = $input['bottom_loading_type_3'];
 		}
 
-		if ( isset( $input['loading_background_color_2'] ) ) {
-			$sanitary_values['loading_background_color_2'] = sanitize_text_field( $input['loading_background_color_2'] );
+    if ( isset( $input['bottom_loading_type_placement_3'] ) ) {
+			$sanitary_values['bottom_loading_type_placement_3'] = sanitize_text_field( $input['bottom_loading_type_placement_3'] );
 		}
 
-		if ( isset( $input['enable_comment_buttons_3'] ) ) {
-			$sanitary_values['enable_comment_buttons_3'] = $input['enable_comment_buttons_3'];
+		if ( isset( $input['loading_panel_background_color_4'] ) ) {
+			$sanitary_values['loading_panel_background_color_4'] = sanitize_text_field( $input['loading_panel_background_color_4'] );
 		}
 
-		if ( isset( $input['facebook_comments_container_4'] ) ) {
-			$sanitary_values['facebook_comments_container_4'] = sanitize_text_field( $input['facebook_comments_container_4'] );
+		if ( isset( $input['enable_panel_image_5'] ) ) {
+			$sanitary_values['enable_panel_image_5'] = $input['enable_panel_image_5'];
 		}
 
-		if ( isset( $input['disqus_comments_container_5'] ) ) {
-			$sanitary_values['disqus_comments_container_5'] = sanitize_text_field( $input['disqus_comments_container_5'] );
+		if ( isset( $input['loading_bar_color_6'] ) ) {
+			$sanitary_values['loading_bar_color_6'] = sanitize_text_field( $input['loading_bar_color_6'] );
 		}
 
-		if ( isset( $input['page_refresh_transition_time_6'] ) ) {
-			$sanitary_values['page_refresh_transition_time_6'] = sanitize_text_field( $input['page_refresh_transition_time_6'] );
+		if ( isset( $input['enable_comment_buttons_7'] ) ) {
+			$sanitary_values['enable_comment_buttons_7'] = $input['enable_comment_buttons_7'];
+		}
+
+		if ( isset( $input['facebook_comment_container_8'] ) ) {
+			$sanitary_values['facebook_comment_container_8'] = sanitize_text_field( $input['facebook_comment_container_8'] );
+		}
+
+		if ( isset( $input['disqus_comment_container_9'] ) ) {
+			$sanitary_values['disqus_comment_container_9'] = sanitize_text_field( $input['disqus_comment_container_9'] );
+		}
+
+		if ( isset( $input['enable_infinite_scroll_10'] ) ) {
+			$sanitary_values['enable_infinite_scroll_10'] = $input['enable_infinite_scroll_10'];
+		}
+
+		if ( isset( $input['post_navigation_container_11'] ) ) {
+			$sanitary_values['post_navigation_container_11'] = sanitize_text_field( $input['post_navigation_container_11'] );
+		}
+
+		if ( isset( $input['top_loading_type_12'] ) ) {
+			$sanitary_values['top_loading_type_12'] = $input['top_loading_type_12'];
+		}
+
+    if ( isset( $input['top_loading_type_placement_12'] ) ) {
+			$sanitary_values['top_loading_type_placement_12'] = sanitize_text_field( $input['top_loading_type_placement_12'] );
+		}
+
+		if ( isset( $input['bottom_loading_type_13'] ) ) {
+			$sanitary_values['bottom_loading_type_13'] = $input['bottom_loading_type_13'];
+		}
+
+    if ( isset( $input['bottom_loading_type_placement_13'] ) ) {
+			$sanitary_values['bottom_loading_type_placement_13'] = sanitize_text_field( $input['bottom_loading_type_placement_13'] );
+		}
+
+		if ( isset( $input['loading_panel_background_color_14'] ) ) {
+			$sanitary_values['loading_panel_background_color_14'] = sanitize_text_field( $input['loading_panel_background_color_14'] );
+		}
+
+		if ( isset( $input['enable_panel_image_15'] ) ) {
+			$sanitary_values['enable_panel_image_15'] = $input['enable_panel_image_15'];
+		}
+
+		if ( isset( $input['loading_bar_color_16'] ) ) {
+			$sanitary_values['loading_bar_color_16'] = sanitize_text_field( $input['loading_bar_color_16'] );
+		}
+
+		if ( isset( $input['enable_comment_buttons_17'] ) ) {
+			$sanitary_values['enable_comment_buttons_17'] = $input['enable_comment_buttons_17'];
+		}
+
+		if ( isset( $input['facebook_comment_container_18'] ) ) {
+			$sanitary_values['facebook_comment_container_18'] = sanitize_text_field( $input['facebook_comment_container_18'] );
+		}
+
+		if ( isset( $input['disqus_comment_container_19'] ) ) {
+			$sanitary_values['disqus_comment_container_19'] = sanitize_text_field( $input['disqus_comment_container_19'] );
 		}
 
 		return $sanitary_values;
@@ -424,76 +642,207 @@ class WpdevinfOptions {
 
 	}
 
-  public function enable_infinite_scroll_0_callback() {
+	public function enable_infinite_scroll_0_callback() {
 		printf(
-			'<input type="checkbox" name="wpdevinf_options_option_name[enable_infinite_scroll_0]" id="enable_infinite_scroll_0" value="enable_infinite_scroll_0" %s><label for="enable_infinite_scroll_0">Enable infinite scroll.</label>',
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_infinite_scroll_0]" id="enable_infinite_scroll_0" value="enable_infinite_scroll_0" %s> <label for="enable_infinite_scroll_0">Turn on Infinite Scroll for Desktop</label>',
 			( isset( $this->wpdevinf_options_options['enable_infinite_scroll_0'] ) && $this->wpdevinf_options_options['enable_infinite_scroll_0'] === 'enable_infinite_scroll_0' ) ? 'checked' : ''
 		);
 	}
 
-	public function post_navigation_container_0_callback() {
+	public function post_navigation_container_1_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[post_navigation_container_0]" placeholder="nav.post-nav" id="post_navigation_container_0" value="%s"><label for="post_navigation_container_0">Location of single post navigation. Will hide the post navigation. Leave blank if navigation does not exist.</label>',
-			isset( $this->wpdevinf_options_options['post_navigation_container_0'] ) ? esc_attr( $this->wpdevinf_options_options['post_navigation_container_0']) : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[post_navigation_container_1]" placeholder=".class or #id" id="post_navigation_container_1" value="%s"><label for="post_navigation_container_1">Hide the post navigation by entering the post navigation class or ID.</label>',
+			isset( $this->wpdevinf_options_options['post_navigation_container_1'] ) ? esc_attr( $this->wpdevinf_options_options['post_navigation_container_1']) : ''
 		);
 	}
 
-  public function wptouch_post_navigation_container_0_callback() {
+	public function top_loading_type_2_callback() {
+		?> <fieldset><?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_2'] ) && $this->wpdevinf_options_options['top_loading_type_2'] === '1' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_2-0"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_2]" id="top_loading_type_2-0" value="1" <?php echo $checked; ?>> Push In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_2'] ) && $this->wpdevinf_options_options['top_loading_type_2'] === '2' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_2-1"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_2]" id="top_loading_type_2-1" value="2" <?php echo $checked; ?>> Slide In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_2'] ) && $this->wpdevinf_options_options['top_loading_type_2'] === '3' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_2-2"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_2]" id="top_loading_type_2-2" value="3" <?php echo $checked; ?>>  Static</label></fieldset> <?php
+	}
+
+  public function top_loading_type_placement_2_callback() {
+    printf(
+      '<input class="regular-text" type="text" name="wpdevinf_options_option_name[top_loading_type_placement_2]" placeholder=".class or #id" id="top_loading_type_placement_2" value="%s"><label for="top_loading_type_placement_2">Top loading trigger location. Accepts a class or ID.</label>',
+      isset( $this->wpdevinf_options_options['top_loading_type_placement_2'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_placement_2']) : ''
+    );
+  }
+
+	public function bottom_loading_type_3_callback() {
+		?> <fieldset><?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_3'] ) && $this->wpdevinf_options_options['bottom_loading_type_3'] === '1' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_3-0"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_3]" id="bottom_loading_type_3-0" value="1" <?php echo $checked; ?>> Push In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_3'] ) && $this->wpdevinf_options_options['bottom_loading_type_3'] === '2' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_3-1"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_3]" id="bottom_loading_type_3-1" value="2" <?php echo $checked; ?>> Slide In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_3'] ) && $this->wpdevinf_options_options['bottom_loading_type_3'] === '3' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_3-2"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_3]" id="bottom_loading_type_3-2" value="3" <?php echo $checked; ?>>  Static</label></fieldset> <?php
+	}
+
+  public function bottom_loading_type_placement_3_callback() {
+    printf(
+      '<input class="regular-text" type="text" name="wpdevinf_options_option_name[bottom_loading_type_placement_3]" placeholder=".class or #id" id="bottom_loading_type_placement_3" value="%s"><label for="bottom_loading_type_placement_3">Bottom loading trigger location. If static panel, also location of panel. Accepts a class or ID.</label>',
+      isset( $this->wpdevinf_options_options['bottom_loading_type_placement_3'] ) ? esc_attr( $this->wpdevinf_options_options['bottom_loading_type_placement_3']) : ''
+    );
+  }
+
+	public function loading_panel_background_color_4_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[wptouch_post_navigation_container_0]" placeholder="nav.post-nav" id="wptouch_post_navigation_container_0" value="%s"><label for="wptouch_post_navigation_container_0">Location of WPTouch single post navigation. Will hide the post navigation. Leave blank if navigation does not exist.</label>',
-			isset( $this->wpdevinf_options_options['wptouch_post_navigation_container_0'] ) ? esc_attr( $this->wpdevinf_options_options['wptouch_post_navigation_container_0']) : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[loading_panel_background_color_4]" placeholder="#333, rgba(255,255,255,1), or red" id="loading_panel_background_color_4" value="%s"><label for="loading_panel_background_color_4">Panel background color if no image exists or image option is disabled. Accepts hex, RGBA, or written colors.</label>',
+			isset( $this->wpdevinf_options_options['loading_panel_background_color_4'] ) ? esc_attr( $this->wpdevinf_options_options['loading_panel_background_color_4']) : ''
 		);
 	}
 
-	public function bottom_loading_location_container_1_callback() {
+	public function enable_panel_image_5_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[bottom_loading_location_container_1]" placeholder="nav.post-nav" id="bottom_loading_location_container_1" value="%s"><label for="bottom_loading_location_container_1">Location in which to load the bottom, next post container. Can be the post navigation container. This option is REQUIRED.</label>',
-			isset( $this->wpdevinf_options_options['bottom_loading_location_container_1'] ) ? esc_attr( $this->wpdevinf_options_options['bottom_loading_location_container_1']) : ''
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_panel_image_5]" id="enable_panel_image_5" value="enable_panel_image_5" %s> <label for="enable_panel_image_5">Display next or previous post featured image. If no image exists, the background color displays.</label>',
+			( isset( $this->wpdevinf_options_options['enable_panel_image_5'] ) && $this->wpdevinf_options_options['enable_panel_image_5'] === 'enable_panel_image_5' ) ? 'checked' : ''
 		);
 	}
 
-  public function wptouch_bottom_loading_location_container_1_callback() {
+	public function loading_bar_color_6_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[wptouch_bottom_loading_location_container_1]" placeholder="nav.post-nav" id="wptouch_bottom_loading_location_container_1" value="%s"><label for="wptouch_bottom_loading_location_container_1">Location in which to load the bottom, next post container. Can be the post navigation container. This option is REQUIRED.</label>',
-			isset( $this->wpdevinf_options_options['wptouch_bottom_loading_location_container_1'] ) ? esc_attr( $this->wpdevinf_options_options['wptouch_bottom_loading_location_container_1']) : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[loading_bar_color_6]"  placeholder="#333, rgba(255,255,255,1), or red" id="loading_bar_color_6" value="%s"><label for="loading_bar_color_6">Load bar color for transition timer. Accepts hex, RGBA, or written colors.</label>',
+			isset( $this->wpdevinf_options_options['loading_bar_color_6'] ) ? esc_attr( $this->wpdevinf_options_options['loading_bar_color_6']) : ''
 		);
 	}
 
-	public function loading_background_color_2_callback() {
+	public function enable_comment_buttons_7_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[loading_background_color_2]" placeholder="#333333" id="loading_background_color_2" value="%s"><label for="loading_background_color_2">If there is no featured image for the next or previous posts, this is the background color that will display. Default is #333333.</label>',
-			isset( $this->wpdevinf_options_options['loading_background_color_2'] ) ? esc_attr( $this->wpdevinf_options_options['loading_background_color_2']) : ''
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_comment_buttons_7]" id="enable_comment_buttons_7" value="enable_comment_buttons_7" %s> <label for="enable_comment_buttons_7">Replace Facebook and Disqus with comment buttons that display modals.</label>',
+			( isset( $this->wpdevinf_options_options['enable_comment_buttons_7'] ) && $this->wpdevinf_options_options['enable_comment_buttons_7'] === 'enable_comment_buttons_7' ) ? 'checked' : ''
 		);
 	}
 
-	public function enable_comment_buttons_3_callback() {
+	public function facebook_comment_container_8_callback() {
 		printf(
-			'<input type="checkbox" name="wpdevinf_options_option_name[enable_comment_buttons_3]" id="enable_comment_buttons_3" value="enable_comment_buttons_3" %s><label for="enable_comment_buttons_3">Enable buttons that will display Facebook or Disqus comments, if clicked, in a modal.</label>',
-			( isset( $this->wpdevinf_options_options['enable_comment_buttons_3'] ) && $this->wpdevinf_options_options['enable_comment_buttons_3'] === 'enable_comment_buttons_3' ) ? 'checked' : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[facebook_comment_container_8]" placeholder=".class or #id" id="facebook_comment_container_8" value="%s"><label for="facebook_comment_container_8">Facebook comment container for grabbing the comments, placing them in a modal, and hiding the normal output. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['facebook_comment_container_8'] ) ? esc_attr( $this->wpdevinf_options_options['facebook_comment_container_8']) : ''
 		);
 	}
 
-	public function facebook_comments_container_4_callback() {
+	public function disqus_comment_container_9_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[facebook_comments_container_4]" placeholder="#fb-comments" id="facebook_comments_container_4" value="%s"><label for="facebook_comments_container_4">Facebook comments container. Must be used to replace the Facebook comments for button usage.</label>',
-			isset( $this->wpdevinf_options_options['facebook_comments_container_4'] ) ? esc_attr( $this->wpdevinf_options_options['facebook_comments_container_4']) : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[disqus_comment_container_9]" placeholder=".class or #id" id="disqus_comment_container_9" value="%s"><label for="disqus_comment_container_9">Disqus comment container for grabbing the comments, placing them in a modal, and hiding the normal output. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['disqus_comment_container_9'] ) ? esc_attr( $this->wpdevinf_options_options['disqus_comment_container_9']) : ''
 		);
 	}
 
-	public function disqus_comments_container_5_callback() {
+	public function enable_infinite_scroll_10_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[disqus_comments_container_5]" placeholder="#comments" id="disqus_comments_container_5" value="%s"><label for="disqus_comments_container_5">Disqus comments container. Must be used to replace the Disqus comments for button usage.</label>',
-			isset( $this->wpdevinf_options_options['disqus_comments_container_5'] ) ? esc_attr( $this->wpdevinf_options_options['disqus_comments_container_5']) : ''
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_infinite_scroll_10]" id="enable_infinite_scroll_10" value="enable_infinite_scroll_10" %s> <label for="enable_infinite_scroll_10">Turn on Infinite Scroll for Mobile</label>',
+			( isset( $this->wpdevinf_options_options['enable_infinite_scroll_10'] ) && $this->wpdevinf_options_options['enable_infinite_scroll_10'] === 'enable_infinite_scroll_10' ) ? 'checked' : ''
 		);
 	}
 
-	public function page_refresh_transition_time_6_callback() {
+	public function post_navigation_container_11_callback() {
 		printf(
-			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[page_refresh_transition_time_6]" placeholder="3000" id="page_refresh_transition_time_6" value="%s"><label for="page_refresh_transition_time_6">The amount of time it takes to load next post. Default is 3000 (3 seconds).</label>',
-			isset( $this->wpdevinf_options_options['page_refresh_transition_time_6'] ) ? esc_attr( $this->wpdevinf_options_options['page_refresh_transition_time_6']) : ''
+			'<input class="regular-text" type="text" name="wpdevinf_options_option_name[post_navigation_container_11]" placeholder=".class or #id" id="post_navigation_container_11" value="%s"><label for="post_navigation_container_11">Hide the post navigation by entering the post navigation class or ID.</label>',
+			isset( $this->wpdevinf_options_options['post_navigation_container_11'] ) ? esc_attr( $this->wpdevinf_options_options['post_navigation_container_11']) : ''
+		);
+	}
+
+	public function top_loading_type_12_callback() {
+		?> <fieldset><?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_12'] ) && $this->wpdevinf_options_options['top_loading_type_12'] === '1' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_12-0"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_12]" id="top_loading_type_12-0" value="1" <?php echo $checked; ?>> Push In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_12'] ) && $this->wpdevinf_options_options['top_loading_type_12'] === '2' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_12-1"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_12]" id="top_loading_type_12-1" value="2" <?php echo $checked; ?>> Slide In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['top_loading_type_12'] ) && $this->wpdevinf_options_options['top_loading_type_12'] === '3' ) ? 'checked' : '' ; ?>
+		<label for="top_loading_type_12-2"><input type="radio" name="wpdevinf_options_option_name[top_loading_type_12]" id="top_loading_type_12-2" value="3" <?php echo $checked; ?>>  Static</label></fieldset> <?php
+	}
+
+  public function top_loading_type_placement_12_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[top_loading_type_placement_12]" id="top_loading_type_placement_12" value="%s"><label for="top_loading_type_placement_12">Top loading trigger location. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['top_loading_type_placement_12'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_placement_12']) : ''
+		);
+	}
+
+	public function bottom_loading_type_13_callback() {
+		?> <fieldset><?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_13'] ) && $this->wpdevinf_options_options['bottom_loading_type_13'] === '1' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_13-0"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_13]" id="bottom_loading_type_13-0" value="1" <?php echo $checked; ?>> Push In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_13'] ) && $this->wpdevinf_options_options['bottom_loading_type_13'] === '2' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_13-1"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_13]" id="bottom_loading_type_13-1" value="2" <?php echo $checked; ?>> Slide In</label>
+		<?php $checked = ( isset( $this->wpdevinf_options_options['bottom_loading_type_13'] ) && $this->wpdevinf_options_options['bottom_loading_type_13'] === '3' ) ? 'checked' : '' ; ?>
+		<label for="bottom_loading_type_13-2"><input type="radio" name="wpdevinf_options_option_name[bottom_loading_type_13]" id="bottom_loading_type_13-2" value="3" <?php echo $checked; ?>>  Static</label></fieldset> <?php
+	}
+
+  public function bottom_loading_type_placement_13_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[bottom_loading_type_placement_13]" id="bottom_loading_type_placement_13" value="%s"><label for="bottom_loading_type_placement_13">Bottom loading trigger location. If static panel, also location of panel. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['bottom_loading_type_placement_13'] ) ? esc_attr( $this->wpdevinf_options_options['bottom_loading_type_placement_13']) : ''
+		);
+	}
+
+	public function loading_panel_background_color_14_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder="#333, rgba(255,255,255,1), or red" name="wpdevinf_options_option_name[loading_panel_background_color_14]" id="loading_panel_background_color_14" value="%s"><label for="loading_panel_background_color_4">Panel background color if no image exists or image option is disabled. Accepts hex, RGBA, or written colors.</label>',
+			isset( $this->wpdevinf_options_options['loading_panel_background_color_14'] ) ? esc_attr( $this->wpdevinf_options_options['loading_panel_background_color_14']) : ''
+		);
+	}
+
+	public function enable_panel_image_15_callback() {
+		printf(
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_panel_image_15]" id="enable_panel_image_15" value="enable_panel_image_15" %s> <label for="enable_panel_image_15">Display next or previous post featured image. If no image exists, the background color displays.</label>',
+			( isset( $this->wpdevinf_options_options['enable_panel_image_15'] ) && $this->wpdevinf_options_options['enable_panel_image_15'] === 'enable_panel_image_15' ) ? 'checked' : ''
+		);
+	}
+
+	public function loading_bar_color_16_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder="#333, rgba(255,255,255,1), or red" name="wpdevinf_options_option_name[loading_bar_color_16]" id="loading_bar_color_16" value="%s"><label for="loading_bar_color_16">Load bar color for transition timer. Accepts hex, RGBA, or written colors.</label>',
+			isset( $this->wpdevinf_options_options['loading_bar_color_16'] ) ? esc_attr( $this->wpdevinf_options_options['loading_bar_color_16']) : ''
+		);
+	}
+
+	public function enable_comment_buttons_17_callback() {
+		printf(
+			'<input type="checkbox" name="wpdevinf_options_option_name[enable_comment_buttons_17]" id="enable_comment_buttons_17" value="enable_comment_buttons_17" %s> <label for="enable_comment_buttons_17">Replace Facebook and Disqus with comment buttons that display modals.</label>',
+			( isset( $this->wpdevinf_options_options['enable_comment_buttons_17'] ) && $this->wpdevinf_options_options['enable_comment_buttons_17'] === 'enable_comment_buttons_17' ) ? 'checked' : ''
+		);
+	}
+
+	public function facebook_comment_container_18_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[facebook_comment_container_18]" id="facebook_comment_container_18" value="%s"><label for="facebook_comment_container_18">Facebook comment container for grabbing the comments, placing them in a modal, and hiding the normal output. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['facebook_comment_container_18'] ) ? esc_attr( $this->wpdevinf_options_options['facebook_comment_container_18']) : ''
+		);
+	}
+
+	public function disqus_comment_container_19_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[disqus_comment_container_19]" id="disqus_comment_container_19" value="%s"><label for="disqus_comment_container_19">Disqus comment container for grabbing the comments, placing them in a modal, and hiding the normal output. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['disqus_comment_container_19'] ) ? esc_attr( $this->wpdevinf_options_options['disqus_comment_container_19']) : ''
 		);
 	}
 
 }
 if ( is_admin() )
 	$wpdevinf_options = new WpdevinfOptions();
+
+/*
+ * Retrieve this value with:
+ * $wpdevinf_options_options = get_option( 'wpdevinf_options_option_name' ); // Array of All Options
+ * $enable_infinite_scroll_0 = $wpdevinf_op['enable_infinite_scroll_0']; // Enable Infinite Scroll
+ * $post_navigation_container_1 = $wpdevinf_op['post_navigation_container_1']; // Post Navigation Container
+ * $top_loading_type_2 = $wpdevinf_op['top_loading_type_2']; // Top Loading Type
+ * $bottom_loading_type_3 = $wpdevinf_op['bottom_loading_type_3']; // Bottom Loading Type
+ * $loading_panel_background_color_4 = $wpdevinf_op['loading_panel_background_color_4']; // Loading Panel Background Color
+ * $enable_panel_image_5 = $wpdevinf_op['enable_panel_image_5']; // Enable Panel Image
+ * $loading_bar_color_6 = $wpdevinf_op['loading_bar_color_6']; // Loading Bar Color
+ * $enable_comment_buttons_7 = $wpdevinf_op['enable_comment_buttons_7']; // Enable Comment Buttons
+ * $facebook_comment_container_8 = $wpdevinf_op['facebook_comment_container_8']; // Facebook Comment Container
+ * $disqus_comment_container_9 = $wpdevinf_op['disqus_comment_container_9']; // Disqus Comment Container
+ * $enable_infinite_scroll_10 = $wpdevinf_op['enable_infinite_scroll_10']; // Enable Infinite Scroll
+ * $post_navigation_container_11 = $wpdevinf_op['post_navigation_container_11']; // Post Navigation Container
+ * $top_loading_type_12 = $wpdevinf_op['top_loading_type_12']; // Top Loading Type
+ * $bottom_loading_type_13 = $wpdevinf_op['bottom_loading_type_13']; // Bottom Loading Type
+ * $loading_panel_background_color_14 = $wpdevinf_op['loading_panel_background_color_14']; // Loading Panel Background Color
+ * $enable_panel_image_15 = $wpdevinf_op['enable_panel_image_15']; // Enable Panel Image
+ * $loading_bar_color_16 = $wpdevinf_op['loading_bar_color_16']; // Loading Bar Color
+ * $enable_comment_buttons_17 = $wpdevinf_op['enable_comment_buttons_17']; // Enable Comment Buttons
+ * $facebook_comment_container_18 = $wpdevinf_op['facebook_comment_container_18']; // Facebook Comment Container
+ * $disqus_comment_container_19 = $wpdevinf_op['disqus_comment_container_19']; // Disqus Comment Container
+ */
