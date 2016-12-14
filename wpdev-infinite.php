@@ -3,7 +3,7 @@
  * Plugin Name: WP Developers | Infinite ∞
  * Plugin URI: http://wpdevelopers.com
  * Description: Auto loads the next post on single, with a slick transition, and loads new ads.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Tyler Johnson
  * Author URI: http://libertyalliance.com
  * Copyright 2016 WP Developers & Liberty Alliance LLC
@@ -32,6 +32,7 @@ function wpdevinf_enqueue_files() {
     $postnav   = $wpdevinf_op['post_navigation_container_11']; // Post Navigation Container
     $toptype   = $wpdevinf_op['top_loading_type_12']; // Top Loading Type
     $toploc    = $wpdevinf_op['top_loading_type_placement_12']; // Top Loading Placement
+    $toptrig   = $wpdevinf_op['top_loading_type_insert_12']; // Scroll down trigger
     $bottype   = $wpdevinf_op['bottom_loading_type_13']; // Bottom Loading Type
     $botloc    = $wpdevinf_op['bottom_loading_type_placement_13']; // Bottom Loading Placement
     $loadimg   = $wpdevinf_op['enable_panel_image_15']; // Enable Panel Image
@@ -44,6 +45,7 @@ function wpdevinf_enqueue_files() {
     $postnav   = $wpdevinf_op['post_navigation_container_1']; // Post Navigation Container
     $toptype   = $wpdevinf_op['top_loading_type_2']; // Top Loading Type
     $toploc    = $wpdevinf_op['top_loading_type_placement_2']; // Top Loading Placement
+    $toptrig   = $wpdevinf_op['top_loading_type_insert_2']; // Scroll down trigger
     $bottype   = $wpdevinf_op['bottom_loading_type_3']; // Bottom Loading Type
     $botloc    = $wpdevinf_op['bottom_loading_type_placement_3']; // Bottom Loading Placement
     $loadimg   = $wpdevinf_op['enable_panel_image_5']; // Enable Panel Image
@@ -111,10 +113,18 @@ function wpdevinf_enqueue_files() {
           }
         }
 
+        // Top Trigger
+        if(!empty($toptrig)) {
+          $toptrigout = $toptrig;
+        } else {
+          $toptrigout = 'body > div';
+        }
+
       $data = array(
         'navcontainer' => $navoutput,
         'topnavtype'   => $topout,
         'topnavplace'  => $toplocation,
+        'topnavtrig'   => $toptrigout,
         'botnavtype'   => $botout,
         'botnavplace'  => $botlocation,
         'commentbtns'  => $enablecom,
@@ -345,15 +355,23 @@ class WpdevinfOptions {
 			'wpdevinf_options_desktopsetting_section' // section
 		);
 
-		add_settings_field(
-			'post_navigation_container_1', // id
-			'Post Navigation Container', // title
-			array( $this, 'post_navigation_container_1_callback' ), // callback
+    add_settings_field(
+      'top_loading_type_placement_2', // id
+      'Top Loading Placement', // title
+      array( $this, 'top_loading_type_placement_2_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_desktopsetting_section' // section
+    );
+
+    add_settings_field(
+			'top_loading_type_insert_2', // id
+			'Top Loading Insert', // title
+			array( $this, 'top_loading_type_insert_2_callback' ), // callback
 			'wpdevinf-options-admin', // page
 			'wpdevinf_options_desktopsetting_section' // section
 		);
 
-		add_settings_field(
+    add_settings_field(
 			'top_loading_type_2', // id
 			'Top Loading Type', // title
 			array( $this, 'top_loading_type_2_callback' ), // callback
@@ -362,25 +380,17 @@ class WpdevinfOptions {
 		);
 
     add_settings_field(
-			'top_loading_type_placement_2', // id
-			'Top Loading Placement', // title
-			array( $this, 'top_loading_type_placement_2_callback' ), // callback
-			'wpdevinf-options-admin', // page
-			'wpdevinf_options_desktopsetting_section' // section
-		);
+      'bottom_loading_type_placement_3', // id
+      'Bottom Loading Placement', // title
+      array( $this, 'bottom_loading_type_placement_3_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_desktopsetting_section' // section
+    );
 
-		add_settings_field(
+    add_settings_field(
 			'bottom_loading_type_3', // id
 			'Bottom Loading Type', // title
 			array( $this, 'bottom_loading_type_3_callback' ), // callback
-			'wpdevinf-options-admin', // page
-			'wpdevinf_options_desktopsetting_section' // section
-		);
-
-    add_settings_field(
-			'bottom_loading_type_placement_3', // id
-			'Bottom Loading Placement', // title
-			array( $this, 'bottom_loading_type_placement_3_callback' ), // callback
 			'wpdevinf-options-admin', // page
 			'wpdevinf_options_desktopsetting_section' // section
 		);
@@ -405,6 +415,14 @@ class WpdevinfOptions {
 			'loading_bar_color_6', // id
 			'Loading Bar Color', // title
 			array( $this, 'loading_bar_color_6_callback' ), // callback
+			'wpdevinf-options-admin', // page
+			'wpdevinf_options_desktopsetting_section' // section
+		);
+
+    add_settings_field(
+			'post_navigation_container_1', // id
+			'Post Navigation Container', // title
+			array( $this, 'post_navigation_container_1_callback' ), // callback
 			'wpdevinf-options-admin', // page
 			'wpdevinf_options_desktopsetting_section' // section
 		);
@@ -448,13 +466,21 @@ class WpdevinfOptions {
 			'wpdevinf_options_mobilesetting_section' // section
 		);
 
-		add_settings_field(
-			'post_navigation_container_11', // id
-			'Post Navigation Container', // title
-			array( $this, 'post_navigation_container_11_callback' ), // callback
-			'wpdevinf-options-admin', // page
-			'wpdevinf_options_mobilesetting_section' // section
-		);
+    add_settings_field(
+      'top_loading_type_placement_12', // id
+      'Top Loading Placement', // title
+      array( $this, 'top_loading_type_placement_12_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_mobilesetting_section' // section
+    );
+
+    add_settings_field(
+      'top_loading_type_insert_12', // id
+      'Top Loading Insert', // title
+      array( $this, 'top_loading_type_insert_12_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_mobilesetting_section' // section
+    );
 
 		add_settings_field(
 			'top_loading_type_12', // id
@@ -465,25 +491,17 @@ class WpdevinfOptions {
 		);
 
     add_settings_field(
-			'top_loading_type_placement_12', // id
-			'Top Loading Placement', // title
-			array( $this, 'top_loading_type_placement_12_callback' ), // callback
-			'wpdevinf-options-admin', // page
-			'wpdevinf_options_mobilesetting_section' // section
-		);
+      'bottom_loading_type_placement_13', // id
+      'Bottom Loading Placement', // title
+      array( $this, 'bottom_loading_type_placement_13_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_mobilesetting_section' // section
+    );
 
 		add_settings_field(
 			'bottom_loading_type_13', // id
 			'Bottom Loading Type', // title
 			array( $this, 'bottom_loading_type_13_callback' ), // callback
-			'wpdevinf-options-admin', // page
-			'wpdevinf_options_mobilesetting_section' // section
-		);
-
-    add_settings_field(
-			'bottom_loading_type_placement_13', // id
-			'Bottom Loading Placement', // title
-			array( $this, 'bottom_loading_type_placement_13_callback' ), // callback
 			'wpdevinf-options-admin', // page
 			'wpdevinf_options_mobilesetting_section' // section
 		);
@@ -511,6 +529,14 @@ class WpdevinfOptions {
 			'wpdevinf-options-admin', // page
 			'wpdevinf_options_mobilesetting_section' // section
 		);
+
+    add_settings_field(
+      'post_navigation_container_11', // id
+      'Post Navigation Container', // title
+      array( $this, 'post_navigation_container_11_callback' ), // callback
+      'wpdevinf-options-admin', // page
+      'wpdevinf_options_mobilesetting_section' // section
+    );
 
 		add_settings_field(
 			'enable_comment_buttons_17', // id
@@ -553,6 +579,10 @@ class WpdevinfOptions {
 
     if ( isset( $input['top_loading_type_placement_2'] ) ) {
 			$sanitary_values['top_loading_type_placement_2'] = sanitize_text_field( $input['top_loading_type_placement_2'] );
+		}
+
+    if ( isset( $input['top_loading_type_insert_2'] ) ) {
+			$sanitary_values['top_loading_type_insert_2'] = sanitize_text_field( $input['top_loading_type_insert_2'] );
 		}
 
 		if ( isset( $input['bottom_loading_type_3'] ) ) {
@@ -601,6 +631,10 @@ class WpdevinfOptions {
 
     if ( isset( $input['top_loading_type_placement_12'] ) ) {
 			$sanitary_values['top_loading_type_placement_12'] = sanitize_text_field( $input['top_loading_type_placement_12'] );
+		}
+
+    if ( isset( $input['top_loading_type_insert_12'] ) ) {
+			$sanitary_values['top_loading_type_insert_12'] = sanitize_text_field( $input['top_loading_type_insert_12'] );
 		}
 
 		if ( isset( $input['bottom_loading_type_13'] ) ) {
@@ -669,6 +703,13 @@ class WpdevinfOptions {
     printf(
       '<input class="regular-text" type="text" name="wpdevinf_options_option_name[top_loading_type_placement_2]" placeholder=".class or #id" id="top_loading_type_placement_2" value="%s"><label for="top_loading_type_placement_2">Top loading trigger location. Accepts a class or ID.</label>',
       isset( $this->wpdevinf_options_options['top_loading_type_placement_2'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_placement_2']) : ''
+    );
+  }
+
+  public function top_loading_type_insert_2_callback() {
+    printf(
+      '<input class="regular-text" type="text" name="wpdevinf_options_option_name[top_loading_type_insert_2]" placeholder=".class or #id" id="top_loading_type_insert_2" value="%s"><label for="top_loading_type_insert_2">Top loading scroll down trigger location. Adds infinite scroll header once you scroll past triggered element. Accepts a class or ID.</label>',
+      isset( $this->wpdevinf_options_options['top_loading_type_insert_2'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_insert_2']) : ''
     );
   }
 
@@ -757,6 +798,13 @@ class WpdevinfOptions {
 		printf(
 			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[top_loading_type_placement_12]" id="top_loading_type_placement_12" value="%s"><label for="top_loading_type_placement_12">Top loading trigger location. Accepts a class or ID.</label>',
 			isset( $this->wpdevinf_options_options['top_loading_type_placement_12'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_placement_12']) : ''
+		);
+	}
+
+  public function top_loading_type_insert_12_callback() {
+		printf(
+			'<input class="regular-text" type="text" placeholder=".class or #id" name="wpdevinf_options_option_name[top_loading_type_insert_12]" id="top_loading_type_insert_12" value="%s"><label for="top_loading_type_insert_12">Top loading scroll down trigger location. Adds infinite scroll header once you scroll past triggered element. Accepts a class or ID.</label>',
+			isset( $this->wpdevinf_options_options['top_loading_type_insert_12'] ) ? esc_attr( $this->wpdevinf_options_options['top_loading_type_insert_12']) : ''
 		);
 	}
 

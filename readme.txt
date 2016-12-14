@@ -26,6 +26,11 @@ Easily install a fresh, new take on infinite scroll that's both analytics and ad
 
 == Changelog ==
 
+= 1.1.1 =
+* New feature - add top trigger on scroll down past defined element. For example, the logo.
+* Rearranged options panel items for ease of use.
+* Minified main JS file, for faster loading.
+
 = 1.1.0 =
 * Added additional panel styles.
 * Added loading bar color options.
