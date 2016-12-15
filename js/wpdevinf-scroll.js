@@ -153,7 +153,7 @@ function initialise_Scrollspy() {
     jQuery(toptrig_location).on('scrollSpy:exit', functionheader);
 		// Enable Element Watching
     jQuery('.wpdevinf-post-divider').scrollSpy();
-    jQuery('.header-image').scrollSpy();
+    jQuery(toptrig_location).scrollSpy();
 }
 
 var flagMarker = true;

@@ -26,6 +26,9 @@ Easily install a fresh, new take on infinite scroll that's both analytics and ad
 
 == Changelog ==
 
+= 1.1.2 =
+* ScrollSpy bug fix on initialization of top trigger location.
+
 = 1.1.1 =
 * New feature - add top trigger on scroll down past defined element. For example, the logo.
 * Rearranged options panel items for ease of use.
