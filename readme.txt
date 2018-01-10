@@ -26,6 +26,9 @@ Easily install a fresh, new take on infinite scroll that's both analytics and ad
 
 == Changelog ==
 
+= 1.1.4 =
+* Bug fix.
+
 = 1.1.3 =
 * PHP7 compatibility fix.
 

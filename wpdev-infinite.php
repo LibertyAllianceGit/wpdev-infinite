@@ -3,7 +3,7 @@
  * Plugin Name: WP Developers | Infinite ∞
  * Plugin URI: http://wpdevelopers.com
  * Description: Auto loads the next post on single, with a slick transition, and loads new ads.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Tyler Johnson
  * Author URI: http://libertyalliance.com
  * Copyright 2016 WP Developers & Liberty Alliance LLC
@@ -13,11 +13,10 @@
 Check for Plugin Updates
 **/
 require 'plugin-update-checker/plugin-update-checker.php';
-$className = PucFactory::getLatestClassVersion('PucGitHubChecker');
-$myUpdateChecker = new $className(
-    'https://github.com/LibertyAllianceGit/wpdev-infinite',
-    __FILE__,
-    'master'
+$myUpdateChecker = Puc_v4_Factory::buildUpdateChecker(
+	'https://github.com/LibertyAllianceGit/wpdev-infinite',
+	__FILE__,
+	'wpdev-infinite'
 );
 
 /**
